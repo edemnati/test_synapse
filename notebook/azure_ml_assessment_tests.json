@@ -1,0 +1,866 @@
+{
+	"name": "azure_ml_assessment_tests",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "myspark",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "0ce4379b-0bf1-479d-a73b-29eb3914ec26",
+				"spark.synapse.library.python.env": "name: simple_environment\r\ndependencies:\r\n  - pandas\r\n  - pip:\r\n    - pyodbc\r\n    - azureml-defaults\r\n    - azure-storage\r\n    - azure-storage-file-datalake\r\n    - azure-identity\r\n    - pyarrow\r\n",
+				"spark.synapse.library.python.env.name": "test_env.yml"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/e0d7a68e-191f-4f51-83ce-d93995cd5c09/resourceGroups/my_ml_tests/providers/Microsoft.Synapse/workspaces/ez-az-synapse-test/bigDataPools/myspark",
+				"name": "myspark",
+				"type": "Spark",
+				"endpoint": "https://ez-az-synapse-test.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/myspark",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Referencing Workspace"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"import pandas as pd\r\n",
+					""
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047356103
+					}
+				},
+				"source": [
+					"import azureml.core\r\n",
+					"from azureml.core import Workspace, Datastore\r\n",
+					"\r\n",
+					"# Referencing Workspace\r\n",
+					"ws = Workspace.from_config()"
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047356527
+					}
+				},
+				"source": [
+					"from azureml.core import ComputeTarget\r\n",
+					"ct_list = ComputeTarget.list(ws)\r\n",
+					"for c in ct_list:\r\n",
+					"    print(type(c))"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Assert compute"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047356782
+					}
+				},
+				"source": [
+					"assert_compute = {\"compute Instance\":False,\"compute Cluster\":False}\r\n",
+					"\r\n",
+					"# Get compute name and compute type \r\n",
+					"from azureml.core import ComputeTarget\r\n",
+					"ct_list = ComputeTarget.list(ws)\r\n",
+					"\r\n",
+					"ws_list_computes = [{\"name\":c.name,\"computeType\":str(type(c))} for c in ct_list]\r\n",
+					"\r\n",
+					"# Assert at least one compute instance exists\r\n",
+					"try:\r\n",
+					"    ci_targets = [c[\"name\"] for c in ws_list_computes if c['computeType']==\"<class 'azureml.core.compute.computeinstance.ComputeInstance'>\"]\r\n",
+					"    assert len(ci_targets) > 0, \"Missing Compute Instance\"\r\n",
+					"    assert_compute[\"compute Instance\"] = True\r\n",
+					"except Exception as E:\r\n",
+					"    print(E)\r\n",
+					"    \r\n",
+					"    \r\n",
+					"# Assert at least one compute cluster exists\r\n",
+					"try:\r\n",
+					"    cc_targets = [c[\"name\"] for c in ws_list_computes if c['computeType']==\"<class 'azureml.core.compute.amlcompute.AmlCompute'>\"]\r\n",
+					"    assert len(cc_targets) > 0, \"Missing Compute Cluster\"\r\n",
+					"    assert_compute[\"compute Cluster\"] = True\r\n",
+					"except Exception as E:\r\n",
+					"    print(E)\r\n",
+					"\r\n",
+					"assert_compute"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"##"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Select Compute Instance"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047359022
+					}
+				},
+				"source": [
+					"from azureml.core.compute import ComputeTarget, AmlCompute, ComputeInstance\r\n",
+					"# Get compute instance to run a test\r\n",
+					"ci_instance = None\r\n",
+					"compute_instance_selected = True\r\n",
+					"try:\r\n",
+					"    ci_instance = ComputeInstance(workspace=ws, name=ci_targets[0]) # Get first compute instance        \r\n",
+					"except Exception as e:\r\n",
+					"    print(e)\r\n",
+					"    compute_instance_selected = False\r\n",
+					"    pass"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Create and register environment"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%writefile env.yml\r\n",
+					"\r\n",
+					"name: simple_environment\r\n",
+					"dependencies:\r\n",
+					"  # The python interpreter version.\r\n",
+					"  # Currently Azure ML only supports 3.5.2 and later.\r\n",
+					"- python=3.8.3\r\n",
+					"- scikit-learn\r\n",
+					"- pandas\r\n",
+					"- pip\r\n",
+					"- pip:\r\n",
+					"  - azureml-defaults\r\n",
+					"  - azureml-mlflow\r\n",
+					"  - pandas\r\n",
+					"  - numpy\r\n",
+					"  - joblib\r\n",
+					"  - scikit-learn\r\n",
+					"  - matplotlib\r\n",
+					"  - seaborn"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047359725
+					}
+				},
+				"source": [
+					"from azureml.core import Environment\r\n",
+					"from azureml.core import Workspace\r\n",
+					"\r\n",
+					"# Get or create registered environment\r\n",
+					"name = \"experiment_env\"\r\n",
+					"file_path = r\"env.yml\"\r\n",
+					"environment_registered = True\r\n",
+					"registered_env = None\r\n",
+					"try:\r\n",
+					"    #register environement if not exist\r\n",
+					"    env_names = Environment.list(workspace=ws)\r\n",
+					"    current_env = name\r\n",
+					"    if current_env in env_names:\r\n",
+					"        registered_env = Environment.get(ws, current_env)\r\n",
+					"    else:    \r\n",
+					"        env = Environment.from_conda_specification(name=name, file_path=file_path)\r\n",
+					"\r\n",
+					"        # Registering and reusing environments\r\n",
+					"        registered_env = env.register(workspace=ws)\r\n",
+					"except Exception as e:\r\n",
+					"    print(e)\r\n",
+					"    environment_registered = False\r\n",
+					"    pass"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Create Dataset"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Download data file"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047359939
+					}
+				},
+				"source": [
+					"# Download training dataset\r\n",
+					"# !wget https://raw.githubusercontent.com/MicrosoftDocs/mslearn-introduction-to-machine-learning/main/Data/ml-basics/diabetes.csv\r\n",
+					"\r\n",
+					"import requests\r\n",
+					"import os\r\n",
+					"\r\n",
+					"dataset_created = True\r\n",
+					"try:\r\n",
+					"    # checking if the directory demo_folder \r\n",
+					"    # exist or not.\r\n",
+					"    if not os.path.exists(\"./data\"):      \r\n",
+					"        # if the demo_folder directory is not present \r\n",
+					"        # then create it.\r\n",
+					"        os.makedirs(\"./data\")\r\n",
+					"\r\n",
+					"    url = \"https://raw.githubusercontent.com/MicrosoftDocs/mslearn-introduction-to-machine-learning/main/Data/ml-basics/diabetes.csv\"\r\n",
+					"    r = requests.get(url)\r\n",
+					"    #retrieving data from the URL using get method\r\n",
+					"    with open(\"./data/diabetes.csv\", 'wb') as f:    \r\n",
+					"        f.write(r.content) \r\n",
+					"\r\n",
+					"except Exception as e:\r\n",
+					"    print(e)\r\n",
+					"    dataset_created = False\r\n",
+					"    pass  \r\n",
+					""
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Register Dataset"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047360210
+					}
+				},
+				"source": [
+					"from azureml.core import Dataset\r\n",
+					"from azureml.data.datapath import DataPath\r\n",
+					"import os\r\n",
+					"\r\n",
+					"# Get default Datastore\r\n",
+					"default_ds = ws.get_default_datastore()\r\n",
+					"\r\n",
+					"src_dir = \"./data\"\r\n",
+					"tgt_dir = \"./data\"\r\n",
+					"file_format=\"csv\"\r\n",
+					"dataset_name = \"diabetes.csv\"\r\n",
+					"data_file_mask = \"data/diabetes.csv\"\r\n",
+					"dataset_registered = True\r\n",
+					"# Register dataset if not exists\r\n",
+					"if dataset_name not in ws.datasets:\r\n",
+					"    try:\r\n",
+					"        Dataset.File.upload_directory(src_dir=src_dir,\r\n",
+					"                            target=DataPath(default_ds, tgt_dir)\r\n",
+					"                            )\r\n",
+					"\r\n",
+					"        #Create a tabular dataset from the path on the datastore (this may take a short while)\r\n",
+					"        tab_data_set = Dataset.Tabular.from_delimited_files(path=(default_ds, data_file_mask))\r\n",
+					"\r\n",
+					"        # Register the tabular dataset    \r\n",
+					"        tab_data_set = tab_data_set.register(workspace=ws, \r\n",
+					"                                name=dataset_name,\r\n",
+					"                                description=dataset_name,\r\n",
+					"                                tags = {'format':file_format.upper()},\r\n",
+					"                                create_new_version=True)\r\n",
+					"        print('Dataset registered.')\r\n",
+					"    except Exception as e:\r\n",
+					"        print(e)\r\n",
+					"        dataset_registered = False\r\n",
+					"        pass\r\n",
+					"else:\r\n",
+					"    print('Dataset already registered.')"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Create Pipeline"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Set pipeline configuration"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047360366
+					}
+				},
+				"source": [
+					"from azureml.pipeline.core import Pipeline\r\n",
+					"from azureml.pipeline.steps import PythonScriptStep\r\n",
+					"from azureml.data import OutputFileDatasetConfig\r\n",
+					"from azureml.core.runconfig import RunConfiguration\r\n",
+					"\r\n",
+					"if compute_instance_selected and dataset_registered and environment_registered:\r\n",
+					"    # Create a new runconfig object for the pipeline\r\n",
+					"    pipeline_run_config = RunConfiguration()\r\n",
+					"\r\n",
+					"    # Use compute instance. \r\n",
+					"    pipeline_run_config.target = ci_instance\r\n",
+					"\r\n",
+					"    # Use created environment\r\n",
+					"    pipeline_run_config.environment = registered_env\r\n",
+					""
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Create data prep file"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%writefile data_prep.py\r\n",
+					"import pandas as pd\r\n",
+					"import numpy as np\r\n",
+					"import math as mt\r\n",
+					"import argparse\r\n",
+					"from azureml.core import Run\r\n",
+					"import os\r\n",
+					"\r\n",
+					"# Get parameters\r\n",
+					"parser = argparse.ArgumentParser()\r\n",
+					"parser.add_argument(\"--input-data\", type=str, dest='raw_dataset_id', help='raw dataset')\r\n",
+					"parser.add_argument('--out-folder', type=str, dest='save_folder', default='prepped_data', help='Folder to output results')\r\n",
+					"args = parser.parse_args()\r\n",
+					"#input_data = args.raw_dataset\r\n",
+					"save_folder = args.save_folder\r\n",
+					"\r\n",
+					"# Get the experiment run context\r\n",
+					"run = Run.get_context()\r\n",
+					"\r\n",
+					"\r\n",
+					"# load the training dataset\r\n",
+					"diabetes = pd.read_csv('./data/diabetes.csv')\r\n",
+					"diabetes.head()\r\n",
+					"\r\n",
+					"# Remove missing data\r\n",
+					"diabetes = diabetes.dropna()\r\n",
+					"\r\n",
+					"# Log processed rows\r\n",
+					"row_count = (len(diabetes))\r\n",
+					"run.log('processed_rows', row_count)\r\n",
+					"\r\n",
+					"# Save the prepped data\r\n",
+					"print(\"Saving Data...\")\r\n",
+					"os.makedirs(save_folder, exist_ok=True)\r\n",
+					"save_path = os.path.join(save_folder,'prep_data.csv')\r\n",
+					"diabetes.to_csv(save_path, index=False, header=True)\r\n",
+					""
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Create train model file"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%writefile train_model.py\r\n",
+					"\r\n",
+					"import pandas as pd\r\n",
+					"import numpy as np\r\n",
+					"import math as mt\r\n",
+					"import argparse\r\n",
+					"import json\r\n",
+					"\r\n",
+					"from azureml.core import Run\r\n",
+					"import os\r\n",
+					"\r\n",
+					"# Get parameters\r\n",
+					"parser = argparse.ArgumentParser()\r\n",
+					"parser.add_argument(\"--training-data\", type=str, dest='training_data', help='training data')\r\n",
+					"\r\n",
+					"args = parser.parse_args()\r\n",
+					"training_data = args.training_data\r\n",
+					"\r\n",
+					"# Get the experiment run context\r\n",
+					"run = Run.get_context()\r\n",
+					"\r\n",
+					"\r\n",
+					"# load the training dataset\r\n",
+					"# load the prepared data file in the training folder\r\n",
+					"print(\"Loading Data...\")\r\n",
+					"file_path = os.path.join(training_data,'prep_data.csv')\r\n",
+					"diabetes = pd.read_csv(file_path)\r\n",
+					"diabetes.head()\r\n",
+					"\r\n",
+					"# Separate features and labels\r\n",
+					"features = ['Pregnancies','PlasmaGlucose','DiastolicBloodPressure','TricepsThickness','SerumInsulin','BMI','DiabetesPedigree','Age']\r\n",
+					"label = 'Diabetic'\r\n",
+					"X, y = diabetes[features].values, diabetes[label].values\r\n",
+					"\r\n",
+					"from sklearn.model_selection import train_test_split\r\n",
+					"\r\n",
+					"# Split data 70%-30% into training set and test set\r\n",
+					"X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=0)\r\n",
+					"\r\n",
+					"print ('Training cases: %d\\nTest cases: %d' % (X_train.shape[0], X_test.shape[0]))    \r\n",
+					"\r\n",
+					"# Train the model\r\n",
+					"from sklearn.linear_model import LogisticRegression\r\n",
+					"\r\n",
+					"# Set regularization rate\r\n",
+					"reg = 0.01\r\n",
+					"\r\n",
+					"# train a logistic regression model on the training set\r\n",
+					"model = LogisticRegression(C=1/reg, solver=\"liblinear\").fit(X_train, y_train)\r\n",
+					"print (model)\r\n",
+					"\r\n",
+					"predictions = model.predict(X_test)\r\n",
+					"print('Predicted labels: ', predictions)\r\n",
+					"print('Actual labels:    ' ,y_test)\r\n",
+					"\r\n",
+					"from sklearn.metrics import accuracy_score\r\n",
+					"\r\n",
+					"model_acc = accuracy_score(y_test, predictions)\r\n",
+					"print('Accuracy: ',model_acc )\r\n",
+					"run.log('train_model', \"LogisticRegression\")\r\n",
+					"run.log('Accuracy', model_acc)\r\n",
+					"\r\n",
+					" # Complete the run\r\n",
+					"run.complete()\r\n",
+					"\r\n",
+					"#------------ SAVE MODEL -----------------#\r\n",
+					"# Save the trained model in the outputs folder\r\n",
+					"import joblib\r\n",
+					"print(\"Saving model...\")\r\n",
+					"os.makedirs('outputs', exist_ok=True)\r\n",
+					"model_file = os.path.join('outputs', f'trained_model_.pkl')\r\n",
+					"joblib.dump(value=model, filename=model_file)\r\n",
+					"\r\n",
+					"# Register the model\r\n",
+					"from azureml.core import Run, Model\r\n",
+					"print('Registering model...')\r\n",
+					"Model.register(workspace=run.experiment.workspace,\r\n",
+					"               model_path = model_file,\r\n",
+					"               model_name = F'trained_model_Logistic',\r\n",
+					"               tags={'Training context':'Pipeline'},\r\n",
+					"               properties={'Acccuracy': np.float(model_acc)})"
+				],
+				"execution_count": 11
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047362874
+					}
+				},
+				"source": [
+					"if compute_instance_selected and dataset_registered and environment_registered:\r\n",
+					"    # 2-Get the training dataset\r\n",
+					"    raw_ds = ws.datasets.get(dataset_name)\r\n",
+					"\r\n",
+					"    # Create an OutputFileDatasetConfig (temporary Data Reference) for data passed from step 1 to step 2\r\n",
+					"    prep_data = OutputFileDatasetConfig(\"prep_data\")\r\n",
+					"    \r\n",
+					"    # Defines steps\r\n",
+					"    # Step to run a Python script\r\n",
+					"\r\n",
+					"    step1 = PythonScriptStep(name = 'prepare data',\r\n",
+					"                            source_directory = './',\r\n",
+					"                            script_name = 'data_prep.py',\r\n",
+					"                            compute_target = ci_instance.name,\r\n",
+					"                            runconfig = pipeline_run_config,\r\n",
+					"                            runconfig_pipeline_params=None,\r\n",
+					"                            #inputs=[raw_ds.as_named_input('raw_data')]\r\n",
+					"                            # Script arguments include PipelineData\r\n",
+					"                            arguments = ['--input-data', raw_ds.as_named_input('raw_data'),\r\n",
+					"                                        '--out-folder', prep_data],\r\n",
+					"                            # Disable/Enable step reuse\r\n",
+					"                            allow_reuse = False)\r\n",
+					"\r\n",
+					"    # Step to train a model\r\n",
+					"    step2 = PythonScriptStep(name = 'train model',\r\n",
+					"                            source_directory = './',\r\n",
+					"                            script_name = 'train_model.py',\r\n",
+					"                            compute_target = ci_instance.name,\r\n",
+					"                            runconfig = pipeline_run_config,\r\n",
+					"                            runconfig_pipeline_params=None,\r\n",
+					"                            # Pass as script argument\r\n",
+					"                            arguments=['--training-data', prep_data.as_input(),                                    \r\n",
+					"                                        ],\r\n",
+					"                            #inputs=[],\r\n",
+					"                            #output=[s]  \r\n",
+					"                            )\r\n",
+					"\r\n",
+					"    # Start Compute instance\r\n",
+					"    ci_status = ci_instance.get_status()\r\n",
+					"\r\n",
+					"    if ci_status.state !=\"Running\":\r\n",
+					"        ci_instance.start(wait_for_completion=True, show_output=True)\r\n",
+					"\r\n",
+					""
+				],
+				"execution_count": 12
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047449457
+					}
+				},
+				"source": [
+					"pipeline_executed = True\r\n",
+					"try:\r\n",
+					"    train_pipeline = Pipeline(workspace = ws, steps = [step1,step2])\r\n",
+					"\r\n",
+					"    # Create an experiment and run the pipeline\r\n",
+					"    #Forcing all steps to run add: regenerate_outputs=True\r\n",
+					"    from azureml.core import Workspace, Experiment\r\n",
+					"    experiment = Experiment(workspace = ws, name = 'test-training-pipeline') #regenerate_outputs=True \r\n",
+					"    pipeline_run = experiment.submit(train_pipeline)\r\n",
+					"    pipeline_run.wait_for_completion(show_output=True)\r\n",
+					"except Exception as e:\r\n",
+					"    print(e)\r\n",
+					"    pipeline_executed = False\r\n",
+					"    pass\r\n",
+					"finally:\r\n",
+					"    #Stop compute instance\r\n",
+					"    #ci_instance.stop(wait_for_completion=True, show_output=True)\r\n",
+					"    print(\"OK\")"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Azure ML Readiness Assessment summary"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"gather": {
+						"logged": 1669047449611
+					}
+				},
+				"source": [
+					"print(F\"\"\"\r\n",
+					"       --- Azure ML Readiness Assessment summary ---\r\n",
+					"       assert_compute: {assert_compute}\r\n",
+					"       compute_instance_selected: {compute_instance_selected}\r\n",
+					"       environment_registered: {environment_registered}\r\n",
+					"       dataset_created: {dataset_created}\r\n",
+					"       dataset_registered: {dataset_registered}\r\n",
+					"       pipeline_executed: {pipeline_executed}       \r\n",
+					"       \"\"\"\r\n",
+					"       )"
+				],
+				"execution_count": 14
+			}
+		]
+	}
+}

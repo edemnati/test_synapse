@@ -1,0 +1,17 @@
+{
+	"name": "SQL_SP_Data_Transform_Example",
+	"properties": {
+		"content": {
+			"query": "CREATE PROCEDURE usp_special_orders_by_year @order_year INT\nAS\nBEGIN\n\n/*\n-The commands in a procedure are executed as a single batch of code; which can significantly reduce network traffic \nbetween the server and client because only the call to execute the procedure is sent across the network.\n\n-Stored procedures are compiled the first time they're executed, and the resulting execution plan is held in the cache \nand reused on subsequent runs of the same stored procedure. As a result, it takes less time to process the procedure.\n\n-Pipeline steps:\n1-A Delete activity that deletes the target folder for the transformed data in the data lake if it already exists.\n2-A Stored procedure activity that connects to your serverless SQL pool and runs the stored procedure that encapsulates your CETAS operation.\n*/\n\n\t-- Drop the table if it already exists\n\tIF EXISTS (\n                SELECT * FROM sys.external_tables\n                WHERE name = 'SpecialOrders'\n            )\n        DROP EXTERNAL TABLE SpecialOrders\n\n\t-- Create external table with special orders\n\t-- from the specified year\n\tCREATE EXTERNAL TABLE SpecialOrders\n\t\tWITH (\n\t\t\tLOCATION = 'special_orders/',\n\t\t\tDATA_SOURCE = files,\n\t\t\tFILE_FORMAT = ParquetFormat\n\t\t)\n\tAS\n\tSELECT OrderID, CustomerName, OrderTotal\n\tFROM\n\t\tOPENROWSET(\n\t\t\tBULK 'sales_orders/*.csv',\n\t\t\tDATA_SOURCE = 'files',\n\t\t\tFORMAT = 'CSV',\n\t\t\tPARSER_VERSION = '2.0',\n\t\t\tHEADER_ROW = TRUE\n\t\t) AS source_data\n\tWHERE OrderType = 'Special Order'\n\tAND YEAR(OrderDate) = @order_year\nEND",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

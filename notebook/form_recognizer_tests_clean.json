@@ -1,0 +1,392 @@
+{
+	"name": "form_recognizer_tests_clean",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testspark2",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "56g",
+			"driverCores": 8,
+			"executorMemory": "56g",
+			"executorCores": 8,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "65cf11a2-f444-4024-9f21-0095ae5db336"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/e0d7a68e-191f-4f51-83ce-d93995cd5c09/resourceGroups/my_ml_tests/providers/Microsoft.Synapse/workspaces/ez-az-synapse-test/bigDataPools/testspark2",
+				"name": "testspark2",
+				"type": "Spark",
+				"endpoint": "https://ez-az-synapse-test.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testspark2",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 10,
+				"cores": 8,
+				"memory": 56,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Form Recognizer tutorial\r\n",
+					"\r\n",
+					"__Setup__\r\n",
+					"\r\n",
+					"- Create Form Recognizer service instance\r\n",
+					"- Create secret scope to store access key\r\n",
+					"- Create Azure Synapse Spark pool"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"__Setup__"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#from synapse.ml.cognitive import *\r\n",
+					"from synapse.ml.cognitive import *\r\n",
+					"\r\n",
+					"from notebookutils import mssparkutils\r\n",
+					"\r\n",
+					"# A general Cognitive Services key for Text Analytics and Computer Vision (or use separate keys that belong to each service)\r\n",
+					"cognitive_service_key = mssparkutils.credentials.getSecret(\"ezzat-keyvault\", \"ez-cog-lang\")\r\n",
+					"cognitive_service_form_key = mssparkutils.credentials.getSecret(\"ezzat-keyvault\",\"ez-cog-form\")\r\n",
+					"\r\n",
+					"# A Bing Search v7 subscription key\r\n",
+					"#bingsearch_service_key = mssparkutils.credentials.getSecret(\"ADD_YOUR_KEY_VAULT_NAME\", \"ADD_YOUR_BING_SEARCH_KEY\",\"ADD_YOUR_KEY_VAULT_LINKED_SERVICE_NAME\")\r\n",
+					"# An Anomaly Dectector subscription key\r\n",
+					"#anomalydetector_key = mssparkutils.credentials.getSecret(\"ADD_YOUR_KEY_VAULT_NAME\", \"ADD_YOUR_ANOMALY_KEY\",\"ADD_YOUR_KEY_VAULT_LINKED_SERVICE_NAME\")\r\n",
+					"\r\n",
+					"#Ref: https://microsoft.github.io/SynapseML/docs/documentation/transformers/transformers_cognitive/#analyzedocument\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## AnalyzeLayout"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"import pyspark.sql.functions as f\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"imageDf = spark.createDataFrame([\r\n",
+					"  (\"https://mmlspark.blob.core.windows.net/datasets/FormRecognizer/layout1.jpg\",),\r\n",
+					"  (\"https://raw.githubusercontent.com/MicrosoftDocs/azure-docs/master/articles/cognitive-services/Computer-vision/Images/readsample.jpg\",),\r\n",
+					"  (\"https://www.nist.gov/sites/default/files/images/2019/04/27/sd19.jpg\",),\r\n",
+					"  (\"https://formrecognizer.appliedai.azure.com/documents/samples/layout/layout-checklist.jpg\",)\r\n",
+					"], [\"url\",])\r\n",
+					"\r\n",
+					"analyzeLayout = (AnalyzeLayout()\r\n",
+					"            .setSubscriptionKey(cognitive_service_form_key)\r\n",
+					"            .setLocation(\"eastus\")\r\n",
+					"            .setImageUrlCol(\"url\")\r\n",
+					"            .setOutputCol(\"layout\")\r\n",
+					"            .setConcurrency(5))\r\n",
+					"\r\n",
+					"df_analyse_layout=(analyzeLayout.transform(imageDf)        \r\n",
+					"        .cache()\r\n",
+					"        )\r\n",
+					"\r\n",
+					"\r\n",
+					"display(df_analyse_layout)"
+				],
+				"execution_count": 23
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"#Analyse table\r\n",
+					"\r\n",
+					"display(df_analyse_layout\r\n",
+					"        .filter(\"url='https://formrecognizer.appliedai.azure.com/documents/samples/layout/layout-checklist.jpg'\")\r\n",
+					"        .withColumn(\"lines\", f.flatten(f.col(\"layout.analyzeResult.readResults.lines\")))\r\n",
+					"        .withColumn(\"readLayout\", f.col(\"lines.text\"))\r\n",
+					"        .withColumn(\"tables\", f.flatten(f.col(\"layout.analyzeResult.pageResults.tables\")))\r\n",
+					"        .withColumn(\"cells\", f.flatten(f.col(\"tables.cells\")))\r\n",
+					"        .withColumn(\"pageLayout\", f.col(\"cells.text\"))\r\n",
+					"        .select(\"url\", \"readLayout\", \"pageLayout\",\"*\")\r\n",
+					"        #.withColumn('tables',f.explode_outer(f.col(\"tables\")))\r\n",
+					"        #.select(\"tables.*\")\r\n",
+					"        #.withColumn('cells',f.explode_outer(f.col(\"cells\")))\r\n",
+					"        #.select(\"rows\",\"columns\",\"cells.*\")\r\n",
+					"        )\r\n",
+					"\r\n",
+					""
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Analyze document"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"\r\n",
+					"from synapse.ml.cognitive import *\r\n",
+					"import pyspark.sql.functions as f\r\n",
+					"\r\n",
+					"\r\n",
+					"imageDf = spark.createDataFrame([\r\n",
+					"  (\"https://mmlspark.blob.core.windows.net/datasets/FormRecognizer/layout1.jpg\",),\r\n",
+					"  (\"https://raw.githubusercontent.com/MicrosoftDocs/azure-docs/master/articles/cognitive-services/Computer-vision/Images/readsample.jpg\",),\r\n",
+					"   (\"https://www.nist.gov/sites/default/files/images/2019/04/27/sd19.jpg\",),\r\n",
+					"   (\"https://formrecognizer.appliedai.azure.com/documents/samples/layout/layout-checklist.jpg\",),\r\n",
+					"   (\"https://fightwcb.org/files/Physio%20discharge%20report%20April%2025.pdf\",)\r\n",
+					"], [\"source\",])\r\n",
+					"\r\n",
+					"analyzeDocument = (AnalyzeDocument()\r\n",
+					"            # For supported prebuilt models, please go to documentation page for details\r\n",
+					"            .setPrebuiltModelId(\"prebuilt-layout\")\r\n",
+					"            .setSubscriptionKey(cognitive_service_form_key)\r\n",
+					"            .setLocation(\"eastus\")\r\n",
+					"            .setImageUrlCol(\"source\")\r\n",
+					"            .setOutputCol(\"result\")\r\n",
+					"            .setConcurrency(5))\r\n",
+					"\r\n",
+					"df_analyzeDocument=(analyzeDocument.transform(imageDf)\r\n",
+					"        .withColumn(\"content\", f.col(\"result.analyzeResult.content\"))\r\n",
+					"        .withColumn(\"cells\", f.flatten(f.col(\"result.analyzeResult.tables.cells\")))\r\n",
+					"        .withColumn(\"cells\", f.col(\"cells.content\"))\r\n",
+					"        .select(\"source\", \"result\", \"content\", \"cells\",\"*\")\r\n",
+					"        .cache()\r\n",
+					"        )\r\n",
+					"\r\n",
+					"\r\n",
+					"display(df_analyzeDocument)"
+				],
+				"execution_count": 34
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"#Analyse table\r\n",
+					"\r\n",
+					"display(df_analyzeDocument\r\n",
+					"        .filter(\"source='https://formrecognizer.appliedai.azure.com/documents/samples/layout/layout-checklist.jpg'\")\r\n",
+					"        .select(\"result.analyzeResult.*\")\r\n",
+					"        .withColumn('tables',f.explode_outer(f.col(\"tables\")))        \r\n",
+					"        .select(\"tables.*\")\r\n",
+					"        .withColumn('cells',f.explode_outer(f.col(\"cells\")))\r\n",
+					"        .select(\"rowCount\",\"columnCount\",\"cells.*\")\r\n",
+					"        )"
+				],
+				"execution_count": 29
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Analyse receipt"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from synapse.ml.cognitive import *\r\n",
+					"\r\n",
+					"\r\n",
+					"imageDf = spark.createDataFrame([\r\n",
+					"  (\"https://mmlspark.blob.core.windows.net/datasets/FormRecognizer/receipt1.png\",),\r\n",
+					"  (\"https://mmlspark.blob.core.windows.net/datasets/FormRecognizer/receipt1.png\",)\r\n",
+					"], [\"image\",])\r\n",
+					"\r\n",
+					"analyzeReceipts = (AnalyzeReceipts()\r\n",
+					"                  .setSubscriptionKey(cognitive_service_form_key)\r\n",
+					"                  .setLocation(\"eastus\")\r\n",
+					"                  .setImageUrlCol(\"image\")\r\n",
+					"                  .setOutputCol(\"receipts\")\r\n",
+					"                  .setConcurrency(5))\r\n",
+					"\r\n",
+					"df_analyzeReceipts=analyzeReceipts.transform(imageDf).cache()\r\n",
+					"display(df_analyzeReceipts)"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Analyze ID document"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from synapse.ml.cognitive import *\r\n",
+					"\r\n",
+					"imageDf = spark.createDataFrame([\r\n",
+					"  (\"https://mmlspark.blob.core.windows.net/datasets/FormRecognizer/id1.jpg\",),  \r\n",
+					"], [\"source\",])\r\n",
+					"\r\n",
+					"analyzeIDDocuments = (AnalyzeIDDocuments()\r\n",
+					"                  .setSubscriptionKey(cognitive_service_form_key)\r\n",
+					"                  .setLocation(\"eastus\")\r\n",
+					"                  .setImageUrlCol(\"source\")\r\n",
+					"                  .setOutputCol(\"ids\")\r\n",
+					"                  .setConcurrency(5))\r\n",
+					"\r\n",
+					"display(analyzeIDDocuments\r\n",
+					"        .transform(imageDf)\r\n",
+					"        .withColumn(\"documents\", f.explode_outer(f.col(\"ids.analyzeResult.documentResults.fields\")))\r\n",
+					"        .select(\"source\", \"documents\",\"*\"))"
+				],
+				"execution_count": 30
+			}
+		]
+	}
+}

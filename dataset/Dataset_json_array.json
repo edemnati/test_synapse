@@ -1,0 +1,20 @@
+{
+	"name": "Dataset_json_array",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ez-az-synapse-test-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "test_json_array.json",
+				"fileSystem": "ez-filesystem"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

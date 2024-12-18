@@ -1,0 +1,252 @@
+{
+	"name": "Notebook_sql_pool_R_W",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "831b8be7-65e9-4d89-845c-1c49f61f3bef"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "scala"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "scala"
+					}
+				},
+				"source": [
+					"%%spark\n",
+					"val df = spark.read.synapsesql(\"mysqlpool.dbo.NYCTaxiTripSmall\") \n",
+					"df.write.mode(\"overwrite\").saveAsTable(\"default.t1\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"//REf: https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks\r\n",
+					"%%spark\r\n",
+					"val scalaDataFrame = spark.read.sqlanalytics(\"mySQLPoolDatabase.dbo.mySQLPoolTable\")\r\n",
+					"scalaDataFrame.createOrReplaceTempView( \"mydataframetable\" )\r\n",
+					"\r\n",
+					"\r\n",
+					"//Read from sql pool with authentication\r\n",
+					"/*\r\n",
+					"The parameters it takes in are:\r\n",
+					"\r\n",
+					"Constants.Server: specify the URL of the server\r\n",
+					"Constants.USER: SQLServer Login UserName\r\n",
+					"Constants.PASSWORD: SQLServer Login Password\r\n",
+					"DBName: the name of the database.\r\n",
+					"Schema: the schema definition such as dbo.\r\n",
+					"TableName: the name of the table you want to read data from.\r\n",
+					"*/\r\n",
+					"val df = spark.read.\r\n",
+					"option(Constants.SERVER, \"samplews.database.windows.net\").\r\n",
+					"option(Constants.USER, <SQLServer Login UserName>).\r\n",
+					"option(Constants.PASSWORD, <SQLServer Login Password>).\r\n",
+					"sqlanalytics(\"<DBName>.<Schema>.<TableName>\")\r\n",
+					"\r\n",
+					"\r\n",
+					"//Write data back to SQL\r\n",
+					"/*\r\n",
+					"The parameters it takes in are:\r\n",
+					"\r\n",
+					"DBName: the name of the database.\r\n",
+					"Schema: the schema definition such as dbo.\r\n",
+					"TableName: the name of the table you want to read data from.\r\n",
+					"TableType: specification of the type of table, which can have two values.\r\n",
+					"Constants.INTERNAL - Managed table in dedicated SQL pool\r\n",
+					"Constants.EXTERNAL - External table in dedicated SQL pool\r\n",
+					"*/\r\n",
+					"df.write.sqlanalytics(\"<DBName>.<Schema>.<TableName>\", <TableType>)\r\n",
+					"\r\n",
+					"//SQL pool external table\r\n",
+					"/*\r\n",
+					"--For an external table, you need to pre-create the data source and file format in dedicated SQL pool using SQL queries:\r\n",
+					"CREATE EXTERNAL DATA SOURCE <DataSourceName>\r\n",
+					"WITH\r\n",
+					"  ( LOCATION = 'abfss://...' ,\r\n",
+					"    TYPE = HADOOP\r\n",
+					"  ) ;\r\n",
+					"\r\n",
+					"CREATE EXTERNAL FILE FORMAT <FileFormatName>\r\n",
+					"WITH (  \r\n",
+					"    FORMAT_TYPE = PARQUET,  \r\n",
+					"    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'  \r\n",
+					");\r\n",
+					"*/\r\n",
+					"df.write.\r\n",
+					"    option(Constants.DATA_SOURCE, <DataSourceName>).\r\n",
+					"    option(Constants.FILE_FORMAT, <FileFormatName>).\r\n",
+					"    sqlanalytics(\"<DBName>.<Schema>.<TableName>\", Constants.EXTERNAL)\r\n",
+					"\r\n",
+					"//Write t SQL pool with authentication\r\n",
+					"/*\r\n",
+					"The parameters it takes in are:\r\n",
+					"\r\n",
+					"Constants.Server: specify the URL of the server\r\n",
+					"Constants.USER: SQLServer Login UserName\r\n",
+					"Constants.PASSWORD: SQLServer Login Password\r\n",
+					"DBName: the name of the database.\r\n",
+					"Schema: the schema definition such as dbo.\r\n",
+					"TableName: the name of the table you want to read data from.\r\n",
+					"TableType: specification of the type of table, which can have two values.\r\n",
+					"Constants.INTERNAL - Managed table in dedicated SQL pool\r\n",
+					"Constants.EXTERNAL - External table in dedicated SQL pool\r\n",
+					"*/\r\n",
+					"df.write.\r\n",
+					"option(Constants.SERVER, \"samplews.database.windows.net\").\r\n",
+					"option(Constants.USER, <SQLServer Login UserName>).\r\n",
+					"option(Constants.PASSWORD, <SQLServer Login Password>).\r\n",
+					"sqlanalytics(\"<DBName>.<Schema>.<TableName>\", <TableType>)\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%sql\r\n",
+					"SELECT * FROM mydataframetable"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"myNewPythonDataFrame = spark.sql(\"SELECT * FROM mydataframetable\")"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"# Read a CSV from Azure Data Lake Store Gen2 as a Spark DataFrame\r\n",
+					"from pyspark.sql import SparkSession\r\n",
+					"from pyspark.sql.types import *\r\n",
+					"account_name = \"Your account name\"\r\n",
+					"container_name = \"Your container name\"\r\n",
+					"relative_path = \"Your path\"\r\n",
+					"adls_path = 'abfss://%s@%s.dfs.core.windows.net/%s' % (container_name, account_name, relative_path)\r\n",
+					"\r\n",
+					"df1 = spark.read.option('header', 'true') \\\r\n",
+					"                .option('delimiter', ',') \\\r\n",
+					"                .csv(adls_path + '/Testfile.csv')"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"# Read a CSV from Azure Blob Storage as a Spark DataFrame\r\n",
+					"from pyspark.sql import SparkSession\r\n",
+					"\r\n",
+					"# Azure storage access info\r\n",
+					"blob_account_name = 'Your account name' # replace with your blob name\r\n",
+					"blob_container_name = 'Your container name' # replace with your container name\r\n",
+					"blob_relative_path = 'Your path' # replace with your relative folder path\r\n",
+					"linked_service_name = 'Your linked service name' # replace with your linked service name\r\n",
+					"\r\n",
+					"blob_sas_token = mssparkutils.credentials.getConnectionStringOrCreds(linked_service_name)\r\n",
+					"\r\n",
+					"# Allow SPARK to access from Blob remotely\r\n",
+					"\r\n",
+					"wasb_path = 'wasbs://%s@%s.blob.core.windows.net/%s' % (blob_container_name, blob_account_name, blob_relative_path)\r\n",
+					"\r\n",
+					"spark.conf.set('fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name), blob_sas_token)\r\n",
+					"print('Remote blob path: ' + wasb_path)\r\n",
+					"\r\n",
+					"df = spark.read.option(\"header\", \"true\") \\\r\n",
+					"            .option(\"delimiter\",\"|\") \\\r\n",
+					"            .schema(schema) \\\r\n",
+					"            .csv(wasbs_path)"
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"name": "AzureSynapseAnalytics_serveless",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=ez-az-synapse-test-ondemand.sql.azuresynapse.net;initial catalog=wsib_db;user id=wsib_db_login",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIlNZTkFQU0VANjQwNUY0ODYtRjZDNS00M0JGLUJFNDAtRTYxREEwOUMzREU4XzE4ZDM1MzA0LWNiM2YtNGMxNi1hMGY0LWQ5N2M5ZTY1MGE5OSINCn0="
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

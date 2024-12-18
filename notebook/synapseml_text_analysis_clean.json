@@ -1,0 +1,748 @@
+{
+	"name": "synapseml_text_analysis_clean",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "testspark2",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "56g",
+			"driverCores": 8,
+			"executorMemory": "56g",
+			"executorCores": 8,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "b09580c4-67e6-4e4f-9d3d-f50d73ee90af"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/e0d7a68e-191f-4f51-83ce-d93995cd5c09/resourceGroups/my_ml_tests/providers/Microsoft.Synapse/workspaces/ez-az-synapse-test/bigDataPools/testspark2",
+				"name": "testspark2",
+				"type": "Spark",
+				"endpoint": "https://ez-az-synapse-test.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/testspark2",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 10,
+				"cores": 8,
+				"memory": 56,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Tutorial: Build intelligent applications using Azure Cognitive Services in Microsoft Machine Learning for Apache Spark\r\n",
+					"\r\n",
+					"In this article, you will learn how to use Microsoft Machine Learning for Apache Spark ([SynapseML ](https://github.com/microsoft/SynapseML)) to create machine learning applications. \r\n",
+					"SynapseML expands the distributed machine learning solution of Apache Spark by adding many deep learning and data science tools, such as [Azure Cognitive Services](../../cognitive-services/big-data/cognitive-services-for-big-data.md), [OpenCV](https://opencv.org/), [LightGBM](https://github.com/Microsoft/LightGBM) and more.  \r\n",
+					"\r\n",
+					"SynapseML allows you to build powerful and highly scalable predictive and analytical models from various Spark data sources.\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"<img width=\"200\"  src=\"https://mmlspark.blob.core.windows.net/graphics/Readme/cog_services_on_spark_2.svg\">\r\n",
+					"\r\n",
+					"This tutorial covers samples using [Azure Cognitive Services](https://azure.microsoft.com/services/cognitive-services/) in SynapseML for \r\n",
+					"\r\n",
+					"- Text Analytics - get the sentiment (or mood) of a set of sentences.\r\n",
+					"- Computer Vision - get the tags (one-word descriptions) associated with a set of images.\r\n",
+					"- Bing Image Search - search the web for images related to a natural language query.\r\n",
+					"- Anomaly Detector - detect anomalies within a time series data.\r\n",
+					"- Speech to Text - convert streams or files of spoken audio to text.\r\n",
+					"\r\n",
+					"If you don't have an Azure subscription, [create a free account before you begin](https://azure.microsoft.com/free/).\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Prerequisites \r\n",
+					"\r\n",
+					"- [Azure Synapse Analytics workspace](https://docs.microsoft.com/azure/synapse-analytics/get-started-create-workspace) with an Azure Data Lake Storage Gen2 storage account configured as the default storage. You need to be the *Storage Blob Data Contributor* of the Data Lake Storage Gen2 file system that you work with.\r\n",
+					"- Spark pool in your Azure Synapse Analytics workspace. For details, see [Create a Spark pool in Azure Synapse](https://docs.microsoft.com/azure/synapse-analytics/get-started-analyze-spark).\r\n",
+					"- Pre-configuration steps described in the tutorial [Configure Cognitive Services in Azure Synapse](https://docs.microsoft.com/azure/synapse-analytics/machine-learning/tutorial-configure-cognitive-services-synapse)."
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Get started\r\n",
+					"To get started, import mmlspark and configurate service keys. "
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"\r\n",
+					"from synapse.ml.cognitive import *\r\n",
+					"from notebookutils import mssparkutils\r\n",
+					"\r\n",
+					"# A general Cognitive Services key for Text Analytics and Computer Vision (or use separate keys that belong to each service)\r\n",
+					"cognitive_service_key = mssparkutils.credentials.getSecret(\"ezzat-keyvault\", \"ez-cog-lang\")\r\n",
+					"cognitive_service_translator_key = mssparkutils.credentials.getSecret(\"ezzat-keyvault\", \"ez-cog-translate\")\r\n",
+					"\r\n",
+					"# A Bing Search v7 subscription key\r\n",
+					"#bingsearch_service_key = mssparkutils.credentials.getSecret(\"ADD_YOUR_KEY_VAULT_NAME\", \"ADD_YOUR_BING_SEARCH_KEY\",\"ADD_YOUR_KEY_VAULT_LINKED_SERVICE_NAME\")\r\n",
+					"# An Anomaly Dectector subscription key\r\n",
+					"#anomalydetector_key = mssparkutils.credentials.getSecret(\"ADD_YOUR_KEY_VAULT_NAME\", \"ADD_YOUR_ANOMALY_KEY\",\"ADD_YOUR_KEY_VAULT_LINKED_SERVICE_NAME\")"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Text analytics sample\r\n",
+					"\r\n",
+					"The [Text Analytics](https://docs.microsoft.com/azure/cognitive-services/text-analytics/) service provides several algorithms for extracting intelligent insights from text. For example, we can find the sentiment of given input text. The service will return a score between 0.0 and 1.0 where low scores indicate negative sentiment and high score indicates positive sentiment. This sample uses three simple sentences and returns the sentiment for each.\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Sentiment analysis"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from pyspark.sql.functions import col\r\n",
+					"\r\n",
+					"# Create a dataframe that's tied to it's column names\r\n",
+					"df_sentences = spark.createDataFrame([\r\n",
+					"  (\"I am so happy today, its sunny!\", \"en-US\"), \r\n",
+					"  (\"this is a dog\", \"en-US\"), \r\n",
+					"  (\"I am frustrated by this rush hour traffic!\", \"en-US\") \r\n",
+					"], [\"text\", \"language\"])\r\n",
+					"\r\n",
+					"# Run the Text Analytics service with options\r\n",
+					"sentiment = (TextSentiment()\r\n",
+					"    .setTextCol(\"text\")\r\n",
+					"    .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"    .setSubscriptionKey(cognitive_service_key)\r\n",
+					"    .setOutputCol(\"sentiment\")\r\n",
+					"    .setErrorCol(\"error\")\r\n",
+					"    .setLanguageCol(\"language\"))\r\n",
+					"\r\n",
+					"# Show the results of your text query in a table format\r\n",
+					"#display(sentiment.transform(df_sentences))\r\n",
+					"#sentiment.transform(df_sentences).printSchema()\r\n",
+					"display(sentiment.transform(df_sentences).select(\"text\",\"language\", \"sentiment.document.sentiment\",\"sentiment.document.confidenceScores.*\"))"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Opinion mining"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"import  pyspark.sql.functions as f\r\n",
+					"\r\n",
+					"# Create a dataframe that's tied to it's column names\r\n",
+					"df = spark.createDataFrame([\r\n",
+					"  (\"Bill Clinton is so happy today, its sunny!\", \"en-US\"),\r\n",
+					"  (\"The room was great, but the staff was unfriendly\", \"en-US\"),\r\n",
+					"  (\"The cognitive services on spark aint bad\", \"en-US\"),\r\n",
+					"], [\"text\", \"language\"])\r\n",
+					"\r\n",
+					"# Run the Text Analytics service with options\r\n",
+					"sentiment = (TextSentiment()\r\n",
+					"            .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"            .setSubscriptionKey(cognitive_service_key)\r\n",
+					"            .setTextCol(\"text\")\r\n",
+					"            .setOutputCol(\"sentiment\")\r\n",
+					"            .setErrorCol(\"error\")\r\n",
+					"            .setLanguageCol(\"language\")\r\n",
+					"            .setOpinionMining(True)\r\n",
+					"            )\r\n",
+					"\r\n",
+					"# Show the results of your text query in a table format\r\n",
+					"#display(sentiment.transform(df))\r\n",
+					"display(sentiment.transform(df)\r\n",
+					"      .select(\"text\",\"language\", \"sentiment.document.*\")\r\n",
+					"      .withColumn(\"sentences\",f.explode_outer(\"sentences\"))\r\n",
+					"      .select(f.col(\"text\").alias(\"original_text\"),\"sentiment\"\r\n",
+					"            ,f.col(\"sentences.sentiment\").alias(\"sentences_sentiment\")\r\n",
+					"            ,f.col(\"sentences.confidenceScores\").alias(\"sentences_conf_score\")\r\n",
+					"            ,f.col(\"sentences.text\").alias(\"sentences_text\")\r\n",
+					"            ,f.col(\"sentences.targets\").alias(\"sentences_targets\")\r\n",
+					"            ,f.col(\"sentences.assessments\").alias(\"sentences_assessments\")\r\n",
+					"      )\r\n",
+					"     \r\n",
+					")"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Language detector"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"# Create a dataframe that's tied to it's column names\r\n",
+					"df = spark.createDataFrame([\r\n",
+					"  (\"Hello World\",),\r\n",
+					"  (\"Bonjour tout le monde\",),\r\n",
+					"  (\"Bonjour tout le monde, my name is John\",),\r\n",
+					"  (\"La carretera estaba atascada. Había mucho tráfico el día de ayer.\",),\r\n",
+					"  (\"你好\",),\r\n",
+					"  (\"こんにちは\",),\r\n",
+					"  (\":) :( :D\",)\r\n",
+					"], [\"text\",])\r\n",
+					"\r\n",
+					"# Run the Text Analytics service with options\r\n",
+					"language = (LanguageDetector()\r\n",
+					"            .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"            .setSubscriptionKey(cognitive_service_key)\r\n",
+					"            .setTextCol(\"text\")\r\n",
+					"            .setOutputCol(\"language\")\r\n",
+					"            .setErrorCol(\"error\")\r\n",
+					"            )\r\n",
+					"\r\n",
+					"# Show the results of your text query in a table format\r\n",
+					"display(language.transform(df).select(\"text\",\"language.document.detectedLanguage.*\"))"
+				],
+				"execution_count": 32
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Translate text"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from synapse.ml.cognitive import *\r\n",
+					"import pyspark.sql.functions as f\r\n",
+					"\r\n",
+					"\r\n",
+					"translate = (Translate()\r\n",
+					"            .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"            .setSubscriptionKey(cognitive_service_translator_key)\r\n",
+					"            .setTextCol(\"text\")\r\n",
+					"            .setFromLanguageCol(\"lang\")\r\n",
+					"            .setToLanguage([\"en-US\",\"es\"])\r\n",
+					"            .setOutputCol(\"translation\")\r\n",
+					"            .setConcurrency(5))\r\n",
+					"\r\n",
+					"\r\n",
+					"df = spark.createDataFrame([\r\n",
+					"  ([\"Hello, what is your name?\", \"Bye\"],\"en-US\"),\r\n",
+					"  ([\"Bonjour, comment ca va?\"],\"fr\"),\r\n",
+					"  ([\"Como estas?\",],\"es\"),\r\n",
+					"], [\"text\",\"lang\"])\r\n",
+					"\r\n",
+					"display(translate.transform(df)\r\n",
+					"        .withColumn(\"translation\",f.explode_outer(\"translation\"))\r\n",
+					"        .withColumn(\"translations\",f.explode_outer(\"translation.translations\"))\r\n",
+					"        .select(\"text\",\"lang\",f.col(\"translations.to\").alias(\"translated_to\"),f.col(\"translations.text\").alias(\"translated_text\"),)\r\n",
+					"        )"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from synapse.ml.cognitive import *\r\n",
+					"df = spark.createDataFrame([\r\n",
+					"  (\"happy\", \"en-US\"),\r\n",
+					"  (\"unfriendly\", \"en-US\"),\r\n",
+					"  (\"unpredictable\", \"en\"),\r\n",
+					"], [\"text\", \"language\"])\r\n",
+					"\r\n",
+					"\r\n",
+					"dictionaryLookup = (DictionaryLookup()\r\n",
+					"                  .setSubscriptionKey(cognitive_service_translator_key)\r\n",
+					"                  .setLocation(\"eastus\")\r\n",
+					"                  .setFromLanguageCol(\"language\")\r\n",
+					"                  .setToLanguage(\"es\")\r\n",
+					"                  .setTextCol(\"text\")\r\n",
+					"                  .setOutputCol(\"result\"))\r\n",
+					"display(dictionaryLookup\r\n",
+					"    .transform(df)\r\n",
+					"    .withColumn(\"translations\", f.flatten(col(\"result.translations\")))\r\n",
+					"    .withColumn(\"normalizedTarget\", col(\"translations.normalizedTarget\"))\r\n",
+					"    .select(\"text\",\"language\",\"normalizedTarget\")\r\n",
+					"    \r\n",
+					"    )"
+				],
+				"execution_count": 170
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from synapse.ml.cognitive import *\r\n",
+					"df = (spark.createDataFrame([\r\n",
+					"  (\"fly\", \"volar\"),(\"happy\", \"feliz\"),(\"unpredictable\", \"impredecible\")\r\n",
+					"], [\"text\", \"translation\"])\r\n",
+					"    .withColumn(\"textAndTranslation\", f.array(f.struct(col(\"text\"), col(\"translation\")))))\r\n",
+					"\r\n",
+					"\r\n",
+					"dictionaryExamples = (DictionaryExamples()\r\n",
+					"                  .setSubscriptionKey(cognitive_service_translator_key)\r\n",
+					"                  .setLocation(\"eastus\")\r\n",
+					"                  .setFromLanguage(\"en\")\r\n",
+					"                  .setToLanguage(\"es\")\r\n",
+					"                  .setTextAndTranslationCol(\"textAndTranslation\")\r\n",
+					"                  .setOutputCol(\"result\"))\r\n",
+					"display(dictionaryExamples\r\n",
+					"    .transform(df)\r\n",
+					"    .withColumn(\"examples\", f.explode(f.flatten(col(\"result.examples\"))))\r\n",
+					"    .select(\"text\",\"translation\",\"result\",\"examples.*\"))"
+				],
+				"execution_count": 182
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Entity detector"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"import pyspark.sql.functions as f\r\n",
+					"\r\n",
+					"\r\n",
+					"df = spark.createDataFrame([\r\n",
+					"    (\"1\", \"Microsoft released Windows 10 in Canada\"),\r\n",
+					"    (\"2\", \"In 1975, Bill Gates III and Paul Allen founded the company.\")\r\n",
+					"], [\"if\", \"text\"])\r\n",
+					"\r\n",
+					"entity = (EntityDetector()\r\n",
+					"        .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"        .setSubscriptionKey(cognitive_service_key)\r\n",
+					"        .setLanguage(\"en\")\r\n",
+					"        .setOutputCol(\"replies\")\r\n",
+					"        .setErrorCol(\"error\"))\r\n",
+					"\r\n",
+					"entity.transform(df).printSchema()\r\n",
+					"display(entity.transform(df)\r\n",
+					"        .select(\"text\",\"replies.document.*\")\r\n",
+					"        .withColumn(\"entities\",f.explode(\"entities\"))\r\n",
+					"        .select(\"text\",\"entities.name\",\"entities.language\",\"entities.matches\",\"entities.id\",\"entities.url\",)\r\n",
+					"        #.withColumn(\"matches\",f.explode(\"matches\"))\r\n",
+					"        #.select(\"text\",\"name\",\"matches.*\",\"id\",\"url\",)\r\n",
+					"        )"
+				],
+				"execution_count": 18
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Key phrase extractor"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.createDataFrame([\r\n",
+					"    (\"en\", \"Hello world. This is some input text that I love.\"),\r\n",
+					"    (\"fr\", \"Bonjour tout le monde\"),\r\n",
+					"    (\"es\", \"La carretera estaba atascada. Había mucho tráfico el día de ayer.\")\r\n",
+					"], [\"lang\", \"text\"])\r\n",
+					"\r\n",
+					"keyPhrase = (KeyPhraseExtractor()\r\n",
+					"            .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"            .setSubscriptionKey(cognitive_service_key)\r\n",
+					"            .setLanguageCol(\"lang\")\r\n",
+					"            .setOutputCol(\"replies\")\r\n",
+					"            .setErrorCol(\"error\"))\r\n",
+					"\r\n",
+					"display(keyPhrase.transform(df).select(\"*\"))"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Named Entity Recognition\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.createDataFrame([\r\n",
+					"    (\"1\", \"en\", \"I had a wonderful trip to Seattle last week.\"),\r\n",
+					"    (\"2\", \"en\", \"I visited Space Needle 2 times.\")\r\n",
+					"], [\"id\", \"language\", \"text\"])\r\n",
+					"\r\n",
+					"ner = (NER()\r\n",
+					"        .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"        .setSubscriptionKey(cognitive_service_key)\r\n",
+					"        .setLanguageCol(\"language\")\r\n",
+					"        .setOutputCol(\"replies\")\r\n",
+					"        .setErrorCol(\"error\")\r\n",
+					"        )\r\n",
+					"\r\n",
+					"display(ner.transform(df)\r\n",
+					"        .select(\"text\",\"language\",\"replies.document.*\")\r\n",
+					"        .withColumn(\"entities\",f.explode(\"entities\"))\r\n",
+					"        .select(\"text\",\"language\",\"entities.*\")\r\n",
+					"        )"
+				],
+				"execution_count": 17
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Personally Identifiable Information (PII)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.createDataFrame([\r\n",
+					"    (\"1\", \"en\", \"My SSN is 859-98-0987\"),\r\n",
+					"    (\"2\", \"en\", \"Your ABA number - 111000025 - is the first 9 digits in the lower left hand corner of your personal check.\"),\r\n",
+					"    (\"3\", \"en\", \"Is 998.214.865-68 your Brazilian CPF number?\")\r\n",
+					"], [\"id\", \"language\", \"text\"])\r\n",
+					"\r\n",
+					"pii = (PII()\r\n",
+					"    .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"    .setSubscriptionKey(cognitive_service_key)\r\n",
+					"    .setLanguageCol(\"language\")\r\n",
+					"    .setOutputCol(\"replies\")\r\n",
+					"    .setErrorCol(\"error\"))\r\n",
+					"\r\n",
+					"display(pii.transform(df)\r\n",
+					"        .select(\"text\",\"language\",\"replies.document.*\")\r\n",
+					"        .withColumn(\"entities\",f.explode(\"entities\"))\r\n",
+					"        .select(\"text\",\"redactedText\",\"language\",\"entities.*\")\r\n",
+					"\r\n",
+					")"
+				],
+				"execution_count": 19
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Text Analytics for Health"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.createDataFrame(\r\n",
+					"    [\r\n",
+					"        (\"20mg of ibuprofen twice a day\",),\r\n",
+					"        (\"1tsp of Tylenol every 4 hours\",),\r\n",
+					"        (\"6-drops of Vitamin B-12 every evening\",),\r\n",
+					"    ],\r\n",
+					"    [\"text\"],\r\n",
+					")\r\n",
+					"\r\n",
+					"healthcare = (\r\n",
+					"    AnalyzeHealthText()\r\n",
+					"    .setLocation(\"eastus\") # Set the location of your cognitive service\r\n",
+					"    .setSubscriptionKey(cognitive_service_key)\r\n",
+					"    .setLanguage(\"en\")\r\n",
+					"    .setOutputCol(\"response\")\r\n",
+					")\r\n",
+					"\r\n",
+					"display(healthcare.transform(df)\r\n",
+					"            .select(\"text\",\"response.document.*\")\r\n",
+					"        )"
+				],
+				"execution_count": 20
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Clean up resources\r\n",
+					"To ensure the Spark instance is shut down, end any connected sessions(notebooks). The pool shuts down when the **idle time** specified in the Apache Spark pool is reached. You can also select **stop session** from the status bar at the upper right of the notebook.\r\n",
+					"\r\n",
+					"![stopsession](https://adsnotebookrelease.blob.core.windows.net/adsnotebookrelease/adsnotebook/image/stopsession.png)"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Next steps\r\n",
+					"\r\n",
+					"* [Check out Synapse sample notebooks](https://github.com/Azure-Samples/Synapse/tree/main/MachineLearning) \r\n",
+					"* [SynapseML GitHub Repo](https://github.com/microsoft/SynapseML)\r\n",
+					""
+				]
+			}
+		]
+	}
+}

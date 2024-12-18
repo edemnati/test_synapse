@@ -1,0 +1,17 @@
+{
+	"name": "SQL script_create_user",
+	"properties": {
+		"content": {
+			"query": "\n--Run on master\nCREATE LOGIN ezzat WITH PASSWORD = 'MyStrongPa$$1234';\n\n--Run on sqlpool\nCREATE USER ezzat FROM LOGIN ezzat;\n\nADD ROLE db_owner ADD MEMBER ezzat;\n--Grant role to the user in the database  \nEXEC sp_addrolemember 'db_reader', 'ezzat';  \n\nGRANT SELECT ON SCHEMA::dbo TO [ezzat];  ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "mysqlpool",
+				"poolName": "mysqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,21 @@
+{
+	"name": "parquet_from_jsonarray",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ez-az-synapse-test-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-acbab37e-86fa-4eb6-9f7a-54676a53725d-c000.snappy.parquet",
+				"fileSystem": "ez-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

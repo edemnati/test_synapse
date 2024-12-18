@@ -1,0 +1,416 @@
+{
+	"name": "test_table",
+	"properties": {
+		"Name": "test_table",
+		"EntityType": "TABLE",
+		"TableType": "EXTERNAL",
+		"Namespace": {
+			"SchemaName": null,
+			"DatabaseName": "Database1",
+			"DatabaseId": null
+		},
+		"StorageDescriptor": {
+			"Distribution": null,
+			"Columns": [
+				{
+					"Name": "DateID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "MedallionID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "HackneyLicenseID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "PickupTimeID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "DropoffTimeID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "PickupGeographyID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "DropoffGeographyID",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "PickupLatitude",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "double",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "double"
+						}
+					}
+				},
+				{
+					"Name": "PickupLongitude",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "double",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "double"
+						}
+					}
+				},
+				{
+					"Name": "PickupLatLong",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "string",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 8000,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "string"
+						}
+					}
+				},
+				{
+					"Name": "DropoffLatitude",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "double",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "double"
+						}
+					}
+				},
+				{
+					"Name": "DropoffLongitude",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "double",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "double"
+						}
+					}
+				},
+				{
+					"Name": "DropoffLatLong",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "string",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 8000,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "string"
+						}
+					}
+				},
+				{
+					"Name": "PassengerCount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "TripDurationSeconds",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "TripDistanceMiles",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "double",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "double"
+						}
+					}
+				},
+				{
+					"Name": "PaymentType",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "string",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 8000,
+						"Precision": 0,
+						"Scale": 0,
+						"Properties": {
+							"HIVE_TYPE_STRING": "string"
+						}
+					}
+				},
+				{
+					"Name": "FareAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				},
+				{
+					"Name": "SurchargeAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				},
+				{
+					"Name": "TaxAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				},
+				{
+					"Name": "TipAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				},
+				{
+					"Name": "TollsAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				},
+				{
+					"Name": "TotalAmount",
+					"Description": null,
+					"OriginDataTypeName": {
+						"TypeName": "decimal",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 0,
+						"Precision": 19,
+						"Scale": 4,
+						"Properties": {
+							"HIVE_TYPE_STRING": "decimal"
+						}
+					}
+				}
+			],
+			"ColumnSetEntityName": "617776bc-8b79-4689-b9ed-59e13a166541",
+			"Format": {
+				"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+				"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+				"FormatType": "parquet",
+				"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+				"Properties": {
+					"path": "abfss://ez-filesystem@ezmylake.dfs.core.windows.net/NYCTripSmall.parquet",
+					"FormatTypeSetToDatabaseDefault": false
+				}
+			},
+			"Source": {
+				"Provider": "ADLS",
+				"Location": "abfss://ez-filesystem@ezmylake.dfs.core.windows.net/NYCTripSmall.parquet",
+				"Properties": {
+					"LinkedServiceName": "ez-az-synapse-test-WorkspaceDefaultStorage",
+					"LocationSetToDatabaseDefault": false
+				}
+			},
+			"Properties": {
+				"textinputformat.record.delimiter": ",",
+				"compression": "",
+				"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+			},
+			"Compressed": false,
+			"SerDeInfo": null,
+			"IsStoredAsSubdirectories": false
+		},
+		"Owner": null,
+		"CreateTime": 0,
+		"LastAccessTime": 0,
+		"Retention": 0,
+		"Temporary": false,
+		"IsRewriteEnabled": false,
+		"ViewOriginalText": null,
+		"ViewExpandedText": null,
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"OriginObjectId": null,
+		"IsSharedEntity": false,
+		"PublishStatus": "PUBLISHED",
+		"Properties": {
+			"Description": "",
+			"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+			"PrimaryKeys": "",
+			"spark.sql.sources.provider": "parquet",
+			"spark.sql.sources.schema.numParts": "1",
+			"spark.sql.sources.schema.part.0": "{\"type\":\"struct\",\"fields\":[{\"name\":\"DateID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"MedallionID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"HackneyLicenseID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PickupTimeID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"DropoffTimeID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PickupGeographyID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"DropoffGeographyID\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PickupLatitude\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PickupLongitude\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PickupLatLong\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"DropoffLatitude\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}},{\"name\":\"DropoffLongitude\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}},{\"name\":\"DropoffLatLong\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PassengerCount\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TripDurationSeconds\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TripDistanceMiles\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}},{\"name\":\"PaymentType\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"FareAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}},{\"name\":\"SurchargeAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TaxAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TipAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TollsAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}},{\"name\":\"TotalAmount\",\"type\":\"decimal(19,4)\",\"nullable\":true,\"metadata\":{}}]}"
+		},
+		"ObjectVersion": 1,
+		"ObjectId": "2a8313ba-86a8-4899-9bff-8f2914d445eb",
+		"Description": ""
+	},
+	"type": "TABLE"
+}

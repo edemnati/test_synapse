@@ -1,0 +1,11 @@
+{
+	"name": "ezmykv",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://ezzat-keyvault.vault.azure.net/"
+		}
+	}
+}

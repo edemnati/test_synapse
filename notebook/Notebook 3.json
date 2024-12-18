@@ -1,0 +1,39 @@
+{
+	"name": "Notebook 3",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "599459db-686b-42fd-9f2a-5df662da5795"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"%%pyspark\r\n",
+					"df = spark.read.load('abfss://ez-filesystem@ezmylake.dfs.core.windows.net/test_json_array.json', format='json')\r\n",
+					"display(df.limit(10))"
+				]
+			}
+		]
+	}
+}

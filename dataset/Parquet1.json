@@ -1,0 +1,22 @@
+{
+	"name": "Parquet1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ez-az-synapse-test-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "test_write_from_sqlpool.parquet/5860D5BA-F629-43A4-8ABD-C11837F72D49_83_0-1.parquet",
+				"folderPath": "transformed_data",
+				"fileSystem": "ez-filesystem"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

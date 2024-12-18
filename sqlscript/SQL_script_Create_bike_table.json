@@ -1,0 +1,17 @@
+{
+	"name": "SQL_script_Create_bike_table",
+	"properties": {
+		"content": {
+			"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[tbl_daily_bike_share]\n( \n\t[day] int  NULL,\n\t[mnth] int  NULL,\n\t[year] int  NULL,\n\t[season] int  NULL,\n\t[holiday] int  NULL,\n\t[weekday] int  NULL,\n\t[workingday] int  NULL,\n\t[weathersit] int  NULL,\n\t[temp] float  NULL,\n\t[atemp] float  NULL,\n\t[hum] float  NULL,\n\t[windspeed] float  NULL,\n\t[rentals] int  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "mysqlpool",
+				"poolName": "mysqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

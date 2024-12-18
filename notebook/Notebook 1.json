@@ -1,0 +1,214 @@
+{
+	"name": "Notebook 1",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "myspark",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "56635b8a-dab0-44f2-9add-3435be17d6d9"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/e0d7a68e-191f-4f51-83ce-d93995cd5c09/resourceGroups/my_ml_tests/providers/Microsoft.Synapse/workspaces/ez-az-synapse-test/bigDataPools/myspark",
+				"name": "myspark",
+				"type": "Spark",
+				"endpoint": "https://ez-az-synapse-test.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/myspark",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"from pyspark.sql.functions import sum,avg,max,count\r\n",
+					"\r\n",
+					"df = spark.read.parquet(\"abfss://ez-filesystem@ezmylake.dfs.core.windows.net/NYCTripSmall.parquet\")\r\n",
+					"\r\n",
+					"df_agg = df.groupBy(\"PaymentType\").agg(sum(\"PassengerCount\").alias(\"PassengerCount\"), sum(\"FareAmount\").alias(\"FareAmount\"))\r\n",
+					"\r\n",
+					"display(df_agg)"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df_agg.write.parquet(\"abfss://ez-filesystem@ezmylake.dfs.core.windows.net/transformed_data/test_write_spark.parquet\")"
+				],
+				"execution_count": 21
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"spark.sql(\"CREATE DATABASE IF NOT EXISTS nyctaxi\")\r\n",
+					"df.write.mode(\"overwrite\").saveAsTable(\"nyctaxi.trip\")"
+				],
+				"execution_count": 22
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"df_agg2 = spark.sql(\"\"\" SELECT  PaymentType, \r\n",
+					"            sum(PassengerCount) as sum_passengerCount,\r\n",
+					"            sum(FareAmount) as sum_FareAmount\r\n",
+					"            FROM nyctaxi.trip\r\n",
+					"            GROUP BY PaymentType\r\n",
+					"          \"\"\")\r\n",
+					"\r\n",
+					"display(df_agg2)\r\n",
+					""
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Save result to parquet file\r\n",
+					"df_agg2.write.parquet(\"abfss://ez-filesystem@ezmylake.dfs.core.windows.net/transformed_data/test_write_sparkSQL.parquet\")"
+				],
+				"execution_count": 24
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df = spark.sql(\"SELECT * FROM nyctaxi.trip\") \r\n",
+					"display(df)\r\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"\r\n",
+					"df = spark.sql(\"\"\"\r\n",
+					"   SELECT PassengerCount,\r\n",
+					"       SUM(TripDistanceMiles) as SumTripDistance,\r\n",
+					"       AVG(TripDistanceMiles) as AvgTripDistance\r\n",
+					"   FROM nyctaxi.trip\r\n",
+					"   WHERE TripDistanceMiles > 0 AND PassengerCount > 0\r\n",
+					"   GROUP BY PassengerCount\r\n",
+					"   ORDER BY PassengerCount\r\n",
+					"\"\"\") \r\n",
+					"display(df)\r\n",
+					"df.write.mode(\"overwrite\").saveAsTable(\"nyctaxi.passengercountstats\")"
+				]
+			}
+		]
+	}
+}

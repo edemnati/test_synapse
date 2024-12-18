@@ -1,0 +1,17 @@
+{
+	"name": "SQL script _databricks_mip_prep",
+	"properties": {
+		"content": {
+			"query": "/*Set-up*/\n--Create login that will be used to connect to the database\n--RUn ON Master\nCREATE LOGIN test_pool_login_db WITH PASSWORD = 'MyPass1234';    \nGO\n\n--RUn ON mysqlpool\nCREATE USER test_pool_user_db FOR LOGIN test_pool_login_db;\nGO\n\n--GRANT ADMINISTER DATABASE BULK OPERATIONS TO test_pool_user;\nGO\n\n-- Create a db master key if one does not already exist, using your own password.\nCREATE MASTER KEY ENCRYPTION BY PASSWORD='MyStrongPass1234';\n\n--Grant read permissions to user\nGRANT SELECT ON dbo.NYCTaxiTripSmall TO test_pool_user_db;\nGRANT CONTROL TO test_pool_user_db;\n\n\n/**/\n\n\nSELECT count(*) FROM NYCTaxiTripSmall_agg_new_tc_3\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "mysqlpool",
+				"poolName": "mysqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

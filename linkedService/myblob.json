@@ -1,0 +1,20 @@
+{
+	"name": "myblob",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://ezmystorage.blob.core.windows.net/",
+			"accountKind": "StorageV2",
+			"credential": {
+				"referenceName": "Credential-synapse-myblob",
+				"type": "CredentialReference"
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

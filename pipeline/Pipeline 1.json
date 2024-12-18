@@ -1,0 +1,94 @@
+{
+	"name": "Pipeline 1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow_Copy_data",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Dataflow1",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Machine Learning Execute Model Training",
+				"type": "AzureMLExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Notebook_Data Prep",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"mlExecutionType": "pipeline"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureMLService1",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Notebook_Data Prep",
+				"type": "SynapseNotebook",
+				"dependsOn": [
+					{
+						"activity": "Data flow_Copy_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebook": {
+						"referenceName": "Notebook_wsib_samples",
+						"type": "NotebookReference"
+					},
+					"snapshot": true,
+					"sparkPool": {
+						"referenceName": "myspark",
+						"type": "BigDataPoolReference"
+					},
+					"executorSize": null,
+					"driverSize": null
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2022-12-08T21:14:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
